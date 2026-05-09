@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Manrope, Crimson_Pro } from "next/font/google";
 import { GeistMono } from "geist/font/mono";
+import { CopilotKitProviderShell } from "@/components/copilot/CopilotKitProviderShell";
 import "./globals.css";
+import "@copilotkit/react-core/v2/styles.css";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -31,7 +33,9 @@ export default function RootLayout({
       lang="en"
       className={`${manrope.variable} ${crimsonPro.variable} ${GeistMono.variable}`}
     >
-      <body className="subpixel-antialiased">{children}</body>
+      <body className="subpixel-antialiased">
+        <CopilotKitProviderShell>{children}</CopilotKitProviderShell>
+      </body>
     </html>
   );
 }

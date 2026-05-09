@@ -26,5 +26,5 @@ export interface MarginComponent {
 
 export interface AgentResponse {
   blockId: string;
-  component: MarginComponent | null;
+  components: MarginComponent[];
 }

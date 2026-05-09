@@ -1,4 +1,4 @@
-import type { ImageProps } from "@/lib/a2ui-catalog";
+import type { ImageProps } from "@/lib/a2ui-schemas";
 
 export function Image({ data }: { data: ImageProps }) {
   const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(

@@ -9,7 +9,7 @@ import {
   ImageSchema,
   MapSchema,
   QuoteHighlightSchema,
-} from "@/lib/a2ui-catalog";
+} from "@/lib/a2ui-schemas";
 import { BioCard } from "./margin/BioCard";
 import { Chart } from "./margin/Chart";
 import { Definition } from "./margin/Definition";
@@ -30,31 +30,43 @@ const ACCENT_BY_TYPE: Record<ComponentType, string> = {
 
 export function Margin({
   status,
-  component,
+  components,
 }: {
   status: "idle" | "pending" | "ready";
-  component: MarginComponent | null;
+  components: MarginComponent[];
 }) {
   if (status === "idle") {
     return null;
   }
   if (status === "pending") {
     return (
-      <div className="relative h-24 w-full overflow-hidden rounded-2xl border border-stone-200/60 bg-white/70">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-stone-100 to-transparent animate-shimmer" />
-      </div>
+      <>
+        <div className="relative h-28 w-full overflow-hidden rounded-2xl border border-stone-200/60 bg-white/70">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-stone-100 to-transparent animate-shimmer" />
+        </div>
+        <div className="relative h-20 w-full overflow-hidden rounded-2xl border border-stone-200/60 bg-white/70">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-stone-100 to-transparent animate-shimmer" />
+        </div>
+      </>
     );
   }
-  if (component === null) {
+  if (components.length === 0) {
     return null;
   }
-  const accent = ACCENT_BY_TYPE[component.type];
   return (
-    <div
-      className={`relative isolate overflow-hidden rounded-2xl bg-white shadow-[0_2px_20px_rgba(0,0,0,0.04)] ring-1 ring-stone-200/70 transition-all duration-500 animate-in fade-in slide-in-from-bottom-2 before:absolute before:left-0 before:top-0 before:h-full before:w-[3px] ${accent}`}
-    >
-      <div className="pl-1">{renderComponent(component)}</div>
-    </div>
+    <>
+      {components.map((component, i) => {
+        const accent = ACCENT_BY_TYPE[component.type];
+        return (
+          <div
+            key={`${component.type}-${i}`}
+            className={`relative isolate overflow-hidden rounded-2xl bg-white shadow-[0_2px_20px_rgba(0,0,0,0.04)] ring-1 ring-stone-200/70 transition-all duration-500 animate-in fade-in slide-in-from-bottom-2 before:absolute before:left-0 before:top-0 before:h-full before:w-[3px] ${accent}`}
+          >
+            <div className="pl-1">{renderComponent(component)}</div>
+          </div>
+        );
+      })}
+    </>
   );
 }
 

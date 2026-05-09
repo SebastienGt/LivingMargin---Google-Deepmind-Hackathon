@@ -9,16 +9,16 @@ import type {
   ParsedDocument,
 } from "@/lib/types";
 import { Margin } from "./Margin";
+import { SelectionExplorer } from "./SelectionExplorer";
 
 type SlotStatus = "idle" | "pending" | "ready";
 
 interface SlotState {
   status: SlotStatus;
-  component: MarginComponent | null;
+  components: MarginComponent[];
 }
 
-const PRELOAD_COUNT = 10;
-const PREFETCH_AHEAD = 4;
+const CONCURRENCY = 6;
 
 export function DocumentViewer({
   parsed,
@@ -37,12 +37,15 @@ export function DocumentViewer({
 
       setSlots((prev) => ({
         ...prev,
-        [block.id]: { status: "pending", component: null },
+        [block.id]: { status: "pending", components: [] },
       }));
 
       const previousTexts = parsed.blocks
         .slice(Math.max(0, block.index - 2), block.index)
         .map((b) => b.text);
+
+      const wordCount = block.text.trim().split(/\s+/).length;
+      const desiredCount = Math.min(7, Math.max(4, Math.ceil(wordCount / 18)));
 
       try {
         const res = await fetch("/api/agent", {
@@ -52,6 +55,7 @@ export function DocumentViewer({
             blockId: block.id,
             currentText: block.text,
             previousTexts,
+            desiredCount,
           }),
         });
         const json: AgentResponse = await res.json();
@@ -59,13 +63,13 @@ export function DocumentViewer({
           ...prev,
           [block.id]: {
             status: "ready",
-            component: json.component ?? null,
+            components: json.components ?? [],
           },
         }));
       } catch {
         setSlots((prev) => ({
           ...prev,
-          [block.id]: { status: "ready", component: null },
+          [block.id]: { status: "ready", components: [] },
         }));
       }
     },
@@ -73,34 +77,57 @@ export function DocumentViewer({
   );
 
   useEffect(() => {
-    const initial = parsed.blocks.slice(0, PRELOAD_COUNT);
-    for (const b of initial) fetchBlock(b);
+    let cancelled = false;
+    const queue = [...parsed.blocks];
+    let active = 0;
+
+    const pump = () => {
+      while (!cancelled && active < CONCURRENCY && queue.length > 0) {
+        const next = queue.shift()!;
+        active += 1;
+        fetchBlock(next).finally(() => {
+          active -= 1;
+          if (!cancelled) pump();
+        });
+      }
+    };
+    pump();
+    return () => {
+      cancelled = true;
+    };
   }, [parsed.blocks, fetchBlock]);
 
-  const onParagraphInView = useCallback(
-    (block: DocumentBlock) => {
-      const targets: DocumentBlock[] = [];
-      for (let i = 0; i <= PREFETCH_AHEAD; i++) {
-        const next = parsed.blocks[block.index + i];
-        if (next) targets.push(next);
-      }
-      for (const t of targets) fetchBlock(t);
+  const appendComponents = useCallback(
+    (blockId: string, comps: MarginComponent[]) => {
+      setSlots((prev) => {
+        const existing = prev[blockId] ?? {
+          status: "ready" as const,
+          components: [],
+        };
+        return {
+          ...prev,
+          [blockId]: {
+            status: "ready",
+            components: [...comps, ...existing.components],
+          },
+        };
+      });
     },
-    [parsed.blocks, fetchBlock],
+    [],
   );
 
   const stats = useMemo(() => {
     const total = parsed.blocks.length;
     let analyzed = 0;
-    let withComponent = 0;
+    let componentCount = 0;
     for (const b of parsed.blocks) {
       const s = slots[b.id];
       if (s?.status === "ready") {
         analyzed += 1;
-        if (s.component) withComponent += 1;
+        componentCount += s.components.length;
       }
     }
-    return { total, analyzed, withComponent };
+    return { total, analyzed, componentCount };
   }, [parsed.blocks, slots]);
 
   return (
@@ -138,7 +165,7 @@ export function DocumentViewer({
             </span>
             <span>
               <span className="font-semibold text-stone-700">
-                {stats.withComponent}
+                {stats.componentCount}
               </span>
               <span className="text-stone-400"> components</span>
             </span>
@@ -153,11 +180,11 @@ export function DocumentViewer({
               key={block.id}
               block={block}
               slot={slots[block.id]}
-              onInView={onParagraphInView}
             />
           ))}
         </div>
       </div>
+      <SelectionExplorer onAppend={appendComponents} />
     </main>
   );
 }
@@ -165,38 +192,13 @@ export function DocumentViewer({
 function ParagraphRow({
   block,
   slot,
-  onInView,
 }: {
   block: DocumentBlock;
   slot: SlotState | undefined;
-  onInView: (block: DocumentBlock) => void;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const firedRef = useRef(false);
-
-  useEffect(() => {
-    if (firedRef.current) return;
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting && !firedRef.current) {
-            firedRef.current = true;
-            onInView(block);
-            observer.disconnect();
-          }
-        }
-      },
-      { rootMargin: "300px" },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [block, onInView]);
-
   return (
     <>
-      <div ref={ref} data-block-id={block.id} className="max-w-prose">
+      <div data-block-id={block.id} className="max-w-prose">
         {block.type === "heading" ? (
           <h2 className="font-serif text-3xl font-semibold leading-tight text-stone-900">
             {block.text}
@@ -207,10 +209,10 @@ function ParagraphRow({
           </p>
         )}
       </div>
-      <div>
+      <div className="flex flex-col gap-4">
         <Margin
           status={slot?.status ?? "idle"}
-          component={slot?.component ?? null}
+          components={slot?.components ?? []}
         />
       </div>
     </>

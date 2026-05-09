@@ -1,6 +1,6 @@
 "use client";
 
-import type { ChartProps } from "@/lib/a2ui-catalog";
+import type { ChartProps } from "@/lib/a2ui-schemas";
 import {
   Bar,
   BarChart,

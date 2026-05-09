@@ -1,4 +1,4 @@
-import type { QuoteHighlightProps } from "@/lib/a2ui-catalog";
+import type { QuoteHighlightProps } from "@/lib/a2ui-schemas";
 import { Quote } from "lucide-react";
 
 export function QuoteHighlight({ data }: { data: QuoteHighlightProps }) {

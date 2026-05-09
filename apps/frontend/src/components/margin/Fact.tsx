@@ -1,4 +1,4 @@
-import type { FactProps } from "@/lib/a2ui-catalog";
+import type { FactProps } from "@/lib/a2ui-schemas";
 
 export function Fact({ data }: { data: FactProps }) {
   return (

@@ -1,4 +1,4 @@
-import type { DefinitionProps } from "@/lib/a2ui-catalog";
+import type { DefinitionProps } from "@/lib/a2ui-schemas";
 import { BookOpen } from "lucide-react";
 
 export function Definition({ data }: { data: DefinitionProps }) {

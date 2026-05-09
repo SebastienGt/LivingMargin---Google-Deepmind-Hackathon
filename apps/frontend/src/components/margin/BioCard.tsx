@@ -1,4 +1,4 @@
-import type { BioCardProps } from "@/lib/a2ui-catalog";
+import type { BioCardProps } from "@/lib/a2ui-schemas";
 
 function colorFromName(name: string): string {
   let hash = 0;
