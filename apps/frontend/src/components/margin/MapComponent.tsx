@@ -21,11 +21,11 @@ const Popup = dynamic(() => import("react-leaflet").then((m) => m.Popup), {
 
 export function MapComponent({ data }: { data: MapProps }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
-      <p className="px-4 pt-3 pb-2 text-xs font-medium uppercase tracking-wide text-emerald-600">
+    <div>
+      <p className="px-4 pb-2 pt-3 text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
         {data.title}
       </p>
-      <div style={{ height: 200, width: "100%" }}>
+      <div style={{ height: 220, width: "100%" }}>
         <MapContainer
           center={data.center}
           zoom={data.zoom}

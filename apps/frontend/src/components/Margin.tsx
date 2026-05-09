@@ -1,6 +1,6 @@
 "use client";
 
-import type { MarginComponent } from "@/lib/types";
+import type { ComponentType, MarginComponent } from "@/lib/types";
 import {
   BioCardSchema,
   ChartSchema,
@@ -11,6 +11,13 @@ import { BioCard } from "./margin/BioCard";
 import { Chart } from "./margin/Chart";
 import { MapComponent } from "./margin/MapComponent";
 import { QuoteHighlight } from "./margin/QuoteHighlight";
+
+const ACCENT_BY_TYPE: Record<ComponentType, string> = {
+  "bio-card": "before:bg-sky-400/70",
+  chart: "before:bg-violet-400/70",
+  map: "before:bg-emerald-400/70",
+  "quote-highlight": "before:bg-amber-400/70",
+};
 
 export function Margin({
   status,
@@ -24,15 +31,20 @@ export function Margin({
   }
   if (status === "pending") {
     return (
-      <div className="h-20 w-full animate-pulse rounded-xl bg-zinc-100" />
+      <div className="relative h-24 w-full overflow-hidden rounded-2xl border border-stone-200/60 bg-white/70">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-stone-100 to-transparent animate-shimmer" />
+      </div>
     );
   }
   if (component === null) {
     return null;
   }
+  const accent = ACCENT_BY_TYPE[component.type];
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-      {renderComponent(component)}
+    <div
+      className={`relative isolate overflow-hidden rounded-2xl bg-white shadow-[0_2px_20px_rgba(0,0,0,0.04)] ring-1 ring-stone-200/70 transition-all duration-500 animate-in fade-in slide-in-from-bottom-2 before:absolute before:left-0 before:top-0 before:h-full before:w-[3px] ${accent}`}
+    >
+      <div className="pl-1">{renderComponent(component)}</div>
     </div>
   );
 }

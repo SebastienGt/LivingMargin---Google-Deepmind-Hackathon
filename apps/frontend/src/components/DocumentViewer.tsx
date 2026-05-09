@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import type {
   AgentResponse,
   DocumentBlock,
@@ -15,6 +16,9 @@ interface SlotState {
   status: SlotStatus;
   component: MarginComponent | null;
 }
+
+const PRELOAD_COUNT = 10;
+const PREFETCH_AHEAD = 4;
 
 export function DocumentViewer({
   parsed,
@@ -68,48 +72,92 @@ export function DocumentViewer({
     [parsed.blocks],
   );
 
+  // Preload the first PRELOAD_COUNT blocks immediately on document load.
+  useEffect(() => {
+    const initial = parsed.blocks.slice(0, PRELOAD_COUNT);
+    for (const b of initial) fetchBlock(b);
+  }, [parsed.blocks, fetchBlock]);
+
   const onParagraphInView = useCallback(
     (block: DocumentBlock) => {
-      // Fetch this block + next 3 (prefetch ahead)
-      const targets = [
-        block,
-        parsed.blocks[block.index + 1],
-        parsed.blocks[block.index + 2],
-        parsed.blocks[block.index + 3],
-      ].filter((b): b is DocumentBlock => Boolean(b));
+      const targets: DocumentBlock[] = [];
+      for (let i = 0; i <= PREFETCH_AHEAD; i++) {
+        const next = parsed.blocks[block.index + i];
+        if (next) targets.push(next);
+      }
       for (const t of targets) fetchBlock(t);
     },
     [parsed.blocks, fetchBlock],
   );
 
+  const stats = useMemo(() => {
+    const total = parsed.blocks.length;
+    let analyzed = 0;
+    let withComponent = 0;
+    for (const b of parsed.blocks) {
+      const s = slots[b.id];
+      if (s?.status === "ready") {
+        analyzed += 1;
+        if (s.component) withComponent += 1;
+      }
+    }
+    return { total, analyzed, withComponent };
+  }, [parsed.blocks, slots]);
+
   return (
-    <main className="min-h-screen bg-zinc-50 px-6 py-8 md:px-12">
-      <header className="mx-auto mb-8 flex max-w-6xl items-center justify-between">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-widest text-zinc-400">
-            livingMargin
-          </p>
-          <h1 className="text-lg font-semibold text-zinc-900 line-clamp-1">
-            {parsed.title}
-          </h1>
+    <main className="min-h-screen bg-[#fafaf7]">
+      <header className="sticky top-0 z-20 border-b border-stone-200/70 bg-[#fafaf7]/85 backdrop-blur">
+        <div className="mx-auto flex max-w-[1400px] items-center gap-6 px-8 py-4">
+          <button
+            onClick={onReset}
+            className="inline-flex items-center gap-1.5 rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm text-stone-700 transition hover:border-stone-500 hover:bg-stone-50"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            New document
+          </button>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-medium uppercase tracking-widest text-stone-400">
+              livingMargin
+            </p>
+            <h1 className="truncate font-serif text-lg font-semibold text-stone-900">
+              {parsed.title}
+            </h1>
+          </div>
+          <div className="hidden items-center gap-4 text-xs text-stone-500 md:flex">
+            {stats.analyzed < stats.total && (
+              <span className="inline-flex items-center gap-1.5">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                analyzing&hellip;
+              </span>
+            )}
+            <span>
+              <span className="font-semibold text-stone-700">
+                {stats.analyzed}
+              </span>
+              <span className="text-stone-400"> / {stats.total} </span>
+              paragraphs
+            </span>
+            <span>
+              <span className="font-semibold text-stone-700">
+                {stats.withComponent}
+              </span>
+              <span className="text-stone-400"> components</span>
+            </span>
+          </div>
         </div>
-        <button
-          onClick={onReset}
-          className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-700 transition hover:bg-zinc-50"
-        >
-          Upload another
-        </button>
       </header>
 
-      <div className="mx-auto grid max-w-6xl gap-x-8 gap-y-8 grid-cols-1 lg:grid-cols-[1fr_320px]">
-        {parsed.blocks.map((block) => (
-          <ParagraphRow
-            key={block.id}
-            block={block}
-            slot={slots[block.id]}
-            onInView={onParagraphInView}
-          />
-        ))}
+      <div className="mx-auto max-w-[1400px] px-8 py-12">
+        <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-[1fr_440px]">
+          {parsed.blocks.map((block) => (
+            <ParagraphRow
+              key={block.id}
+              block={block}
+              slot={slots[block.id]}
+              onInView={onParagraphInView}
+            />
+          ))}
+        </div>
       </div>
     </main>
   );
@@ -141,7 +189,7 @@ function ParagraphRow({
           }
         }
       },
-      { rootMargin: "200px" },
+      { rootMargin: "300px" },
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -149,18 +197,18 @@ function ParagraphRow({
 
   return (
     <>
-      <div ref={ref} data-block-id={block.id}>
+      <div ref={ref} data-block-id={block.id} className="max-w-prose">
         {block.type === "heading" ? (
-          <h2 className="font-serif text-2xl font-semibold text-zinc-900 leading-tight">
+          <h2 className="font-serif text-3xl font-semibold leading-tight text-stone-900">
             {block.text}
           </h2>
         ) : (
-          <p className="font-serif text-base text-zinc-800 leading-relaxed">
+          <p className="font-serif text-[17px] leading-[1.75] text-stone-800">
             {block.text}
           </p>
         )}
       </div>
-      <div className="lg:pl-2">
+      <div>
         <Margin
           status={slot?.status ?? "idle"}
           component={slot?.component ?? null}

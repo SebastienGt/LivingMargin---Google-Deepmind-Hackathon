@@ -1,14 +1,14 @@
 import type { QuoteHighlightProps } from "@/lib/a2ui-catalog";
+import { Quote } from "lucide-react";
 
 export function QuoteHighlight({ data }: { data: QuoteHighlightProps }) {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-      <div className="border-l-4 border-amber-400 pl-3">
-        <p className="font-serif italic text-zinc-800 leading-snug">
-          &ldquo;{data.quote}&rdquo;
-        </p>
-      </div>
-      <p className="mt-3 text-xs text-zinc-500 leading-relaxed">
+    <div className="p-5">
+      <Quote className="h-5 w-5 text-amber-400" strokeWidth={1.5} />
+      <p className="mt-2 font-serif text-lg italic leading-snug text-stone-800">
+        {data.quote}
+      </p>
+      <p className="mt-3 text-xs leading-relaxed text-stone-500">
         {data.significance}
       </p>
     </div>

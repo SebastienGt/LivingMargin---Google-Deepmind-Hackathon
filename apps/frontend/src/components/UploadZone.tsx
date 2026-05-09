@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Upload } from "lucide-react";
+import { FileText, Sparkles, Upload } from "lucide-react";
 import type { ParsedDocument } from "@/lib/types";
 
 export function UploadZone({
@@ -34,15 +34,28 @@ export function UploadZone({
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-zinc-50 px-6">
-      <div className="w-full max-w-xl">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-semibold text-zinc-900">livingMargin</h1>
-          <p className="mt-2 text-sm text-zinc-500">
-            Upload a PDF. The agent generates interactive components in the
-            margin, paragraph by paragraph.
-          </p>
+    <main className="relative min-h-screen overflow-hidden bg-[#fafaf7]">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(180,120,80,0.08),_transparent_50%),_radial-gradient(ellipse_at_bottom_right,_rgba(99,102,241,0.06),_transparent_50%)]"
+      />
+      <div className="relative mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center px-6 py-16">
+        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-stone-300/70 bg-white/60 px-3 py-1 text-xs font-medium uppercase tracking-widest text-stone-600 backdrop-blur">
+          <Sparkles className="h-3 w-3" />
+          Generative UI · A2UI
         </div>
+
+        <h1 className="mt-6 text-center font-serif text-5xl font-semibold leading-[1.05] tracking-tight text-stone-900 md:text-6xl">
+          The margin,
+          <br />
+          <span className="italic text-stone-500">reimagined.</span>
+        </h1>
+
+        <p className="mt-6 max-w-xl text-center text-base leading-relaxed text-stone-600">
+          Upload a PDF. As you read, an AI agent generates interactive maps,
+          charts, bios, and quotes alongside each paragraph &mdash; a living
+          margin that thinks with you.
+        </p>
 
         <label
           htmlFor="file-input"
@@ -57,24 +70,35 @@ export function UploadZone({
             const f = e.dataTransfer.files?.[0];
             if (f) handleFile(f);
           }}
-          className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed bg-white px-8 py-16 text-center transition ${
+          className={`group mt-12 flex w-full max-w-xl cursor-pointer flex-col items-center justify-center gap-4 rounded-3xl border-2 border-dashed bg-white/70 px-10 py-14 text-center shadow-[0_2px_24px_rgba(0,0,0,0.04)] backdrop-blur transition ${
             dragActive
-              ? "border-zinc-900 bg-zinc-100"
-              : "border-zinc-300 hover:border-zinc-400"
+              ? "border-stone-900 bg-white scale-[1.01]"
+              : "border-stone-300 hover:border-stone-500 hover:bg-white"
           }`}
         >
-          <Upload className="h-8 w-8 text-zinc-400" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-stone-900 text-white shadow-sm transition group-hover:scale-105">
+            {status === "parsing" ? (
+              <FileText className="h-6 w-6 animate-pulse" />
+            ) : (
+              <Upload className="h-6 w-6" />
+            )}
+          </div>
           <div>
-            <p className="font-medium text-zinc-900">
-              Drop a PDF here, or click to choose
+            <p className="text-base font-medium text-stone-900">
+              {status === "parsing"
+                ? "Parsing your document…"
+                : "Drop a PDF here, or click to choose"}
             </p>
-            <p className="mt-1 text-xs text-zinc-500">.pdf only · up to 10MB</p>
+            <p className="mt-1 text-xs text-stone-500">
+              .pdf only &middot; up to 10MB
+            </p>
           </div>
           <input
             id="file-input"
             type="file"
             accept="application/pdf,.pdf"
             className="hidden"
+            disabled={status === "parsing"}
             onChange={(e) => {
               const f = e.target.files?.[0];
               if (f) handleFile(f);
@@ -82,14 +106,15 @@ export function UploadZone({
           />
         </label>
 
-        {status === "parsing" && (
-          <p className="mt-4 text-center text-sm text-zinc-500">
-            Parsing document…
+        {status === "error" && error && (
+          <p className="mt-4 max-w-xl rounded-lg bg-red-50 px-4 py-2 text-center text-sm text-red-700">
+            {error}
           </p>
         )}
-        {status === "error" && error && (
-          <p className="mt-4 text-center text-sm text-red-600">{error}</p>
-        )}
+
+        <p className="mt-12 text-xs text-stone-400">
+          Built on Gemini 2.5 Flash &middot; A2UI catalog &middot; Next.js 15
+        </p>
       </div>
     </main>
   );

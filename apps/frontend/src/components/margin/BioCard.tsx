@@ -4,7 +4,7 @@ function colorFromName(name: string): string {
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
   const palette = [
-    "#3b82f6",
+    "#0ea5e9",
     "#8b5cf6",
     "#10b981",
     "#f59e0b",
@@ -25,20 +25,22 @@ function initials(name: string): string {
 
 export function BioCard({ data }: { data: BioCardProps }) {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
+    <div className="p-4">
       <div className="flex items-start gap-3">
         <div
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white shadow-sm"
           style={{ backgroundColor: colorFromName(data.name) }}
         >
           {initials(data.name)}
         </div>
-        <div className="min-w-0">
-          <p className="truncate font-semibold text-zinc-900">{data.name}</p>
-          <p className="truncate text-xs text-zinc-500">{data.role}</p>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold text-stone-900">{data.name}</p>
+          <p className="truncate text-xs uppercase tracking-wide text-stone-500">
+            {data.role}
+          </p>
         </div>
       </div>
-      <p className="mt-3 text-xs text-zinc-700 leading-relaxed line-clamp-3">
+      <p className="mt-3 text-sm leading-relaxed text-stone-700">
         {data.description}
       </p>
     </div>
