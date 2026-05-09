@@ -4,11 +4,17 @@ import type { ComponentType, MarginComponent } from "@/lib/types";
 import {
   BioCardSchema,
   ChartSchema,
+  DefinitionSchema,
+  FactSchema,
+  ImageSchema,
   MapSchema,
   QuoteHighlightSchema,
 } from "@/lib/a2ui-catalog";
 import { BioCard } from "./margin/BioCard";
 import { Chart } from "./margin/Chart";
+import { Definition } from "./margin/Definition";
+import { Fact } from "./margin/Fact";
+import { Image } from "./margin/Image";
 import { MapComponent } from "./margin/MapComponent";
 import { QuoteHighlight } from "./margin/QuoteHighlight";
 
@@ -17,6 +23,9 @@ const ACCENT_BY_TYPE: Record<ComponentType, string> = {
   chart: "before:bg-violet-400/70",
   map: "before:bg-emerald-400/70",
   "quote-highlight": "before:bg-amber-400/70",
+  image: "before:bg-pink-400/70",
+  definition: "before:bg-rose-400/70",
+  fact: "before:bg-cyan-400/70",
 };
 
 export function Margin({
@@ -70,6 +79,21 @@ function renderComponent(c: MarginComponent) {
       const r = QuoteHighlightSchema.safeParse(c.data);
       if (!r.success) return null;
       return <QuoteHighlight data={r.data} />;
+    }
+    case "image": {
+      const r = ImageSchema.safeParse(c.data);
+      if (!r.success) return null;
+      return <Image data={r.data} />;
+    }
+    case "definition": {
+      const r = DefinitionSchema.safeParse(c.data);
+      if (!r.success) return null;
+      return <Definition data={r.data} />;
+    }
+    case "fact": {
+      const r = FactSchema.safeParse(c.data);
+      if (!r.success) return null;
+      return <Fact data={r.data} />;
     }
   }
 }

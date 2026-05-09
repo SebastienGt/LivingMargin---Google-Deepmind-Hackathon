@@ -30,28 +30,59 @@ export const QuoteHighlightSchema = z.object({
   significance: z.string(),
 });
 
+export const ImageSchema = z.object({
+  query: z.string().describe("1-3 word search query for an illustrative photo"),
+  caption: z.string(),
+});
+
+export const DefinitionSchema = z.object({
+  term: z.string(),
+  definition: z.string(),
+});
+
+export const FactSchema = z.object({
+  label: z.string().describe("Short label (e.g., 'Population', 'Founded', 'Speed')"),
+  value: z.string().describe("The headline number or fact"),
+  context: z.string().describe("One-sentence context"),
+});
+
 export type BioCardProps = z.infer<typeof BioCardSchema>;
 export type ChartProps = z.infer<typeof ChartSchema>;
 export type MapProps = z.infer<typeof MapSchema>;
 export type QuoteHighlightProps = z.infer<typeof QuoteHighlightSchema>;
+export type ImageProps = z.infer<typeof ImageSchema>;
+export type DefinitionProps = z.infer<typeof DefinitionSchema>;
+export type FactProps = z.infer<typeof FactSchema>;
 
 export const SCHEMA_BY_TYPE = {
   "bio-card": BioCardSchema,
   chart: ChartSchema,
   map: MapSchema,
   "quote-highlight": QuoteHighlightSchema,
+  image: ImageSchema,
+  definition: DefinitionSchema,
+  fact: FactSchema,
 } as const;
 
 export const CATALOG_DESCRIPTIONS = `
-1. bio-card — Use when a person is mentioned whose role/significance benefits from a quick reference. Don't use for every name.
-   data shape: { name: string, role: string, description: string }
+1. bio-card — A person mentioned by name (historical figure, expert, author, character). Even briefly mentioned counts.
+   data: { name: string, role: string, description: string }
 
-2. chart — Use only when the paragraph contains 3+ comparable numbers that benefit from visualization.
-   data shape: { chartType: 'bar' | 'line', title: string, data: [{label: string, value: number}], unit?: string }
+2. chart — 3+ comparable numbers (years over time, categories, percentages, counts).
+   data: { chartType: 'bar' | 'line', title: string, data: [{label: string, value: number}], unit?: string }
 
-3. map — Use when a specific location or geographic area is central to the paragraph. Latitude/longitude come from your world knowledge.
-   data shape: { title: string, center: [lat: number, lng: number], zoom: number, markers: [{position: [lat: number, lng: number], label: string}] }
+3. map — A specific place, region, country, city, or geographic movement. Use your world knowledge for lat/lng.
+   data: { title: string, center: [lat: number, lng: number], zoom: number, markers: [{position: [lat: number, lng: number], label: string}] }
 
-4. quote-highlight — Use rarely, only for genuinely pivotal quoted statements.
-   data shape: { quote: string, significance: string }
+4. quote-highlight — Notable quoted statement, definition-style line, or memorable phrase from the paragraph.
+   data: { quote: string, significance: string }
+
+5. image — A visualizable noun in the paragraph (object, scene, landmark, animal, plant, food, artifact). Provide a 1-3 word search query.
+   data: { query: string, caption: string }
+
+6. definition — A term, concept, or piece of jargon that benefits from a brief explanation.
+   data: { term: string, definition: string }
+
+7. fact — A standout statistic, year, measurement, or notable single fact worth foregrounding.
+   data: { label: string, value: string, context: string }
 `.trim();

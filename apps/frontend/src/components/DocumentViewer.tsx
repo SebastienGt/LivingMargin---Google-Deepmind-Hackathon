@@ -17,8 +17,8 @@ interface SlotState {
   component: MarginComponent | null;
 }
 
-const PRELOAD_COUNT = 10;
-const PREFETCH_AHEAD = 4;
+const PRELOAD_COUNT = 20;
+const PREFETCH_AHEAD = 5;
 
 export function DocumentViewer({
   parsed,

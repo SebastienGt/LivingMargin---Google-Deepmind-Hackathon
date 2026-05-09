@@ -8,9 +8,11 @@ export const runtime = "nodejs";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? "");
 
-const SYSTEM_PROMPT = `You are a document analysis agent that decides whether a paragraph warrants ONE interactive UI component in the margin, or none.
+const SYSTEM_PROMPT = `You are a document analysis agent. For each paragraph, choose ONE interactive UI component from the catalog that enriches the reader's understanding — or null if the paragraph is genuinely boilerplate (filler transitions, page numbers, repeated headers).
 
-CRITICAL: Default to no component. Only emit one when it adds real comprehension value an educated reader would not spontaneously have. An empty margin is always better than a wrong or unnecessary component.
+DEFAULT TO PROVIDING A COMPONENT. Most paragraphs in a real document have at least one hook — a person, place, number, fact, term, or visualizable subject. Find it. Surface it. Empty margins are reserved for navigation cruft, not for content paragraphs.
+
+When more than one component fits, pick the one that adds the most visual variety relative to the surrounding context (favor maps for places, images for objects, charts for numbers, bios for people, definitions for jargon, facts for standout stats, quotes only for genuinely pivotal lines).
 
 Available components:
 ${CATALOG_DESCRIPTIONS}
@@ -20,7 +22,7 @@ You receive the current paragraph plus 0-2 previous paragraphs for context.
 Return STRICT JSON with this exact shape:
 { "component": null }
 OR
-{ "component": { "type": "bio-card" | "chart" | "map" | "quote-highlight", "data": { ... matching the type's data shape ... } } }
+{ "component": { "type": "bio-card" | "chart" | "map" | "quote-highlight" | "image" | "definition" | "fact", "data": { ... matching the type's data shape ... } } }
 
 No markdown, no code fences, no extra text outside the JSON object.`;
 
@@ -72,7 +74,15 @@ export async function POST(req: Request) {
   const Outer = z.object({
     component: z
       .object({
-        type: z.enum(["bio-card", "chart", "map", "quote-highlight"]),
+        type: z.enum([
+          "bio-card",
+          "chart",
+          "map",
+          "quote-highlight",
+          "image",
+          "definition",
+          "fact",
+        ]),
         data: z.unknown(),
       })
       .nullable(),

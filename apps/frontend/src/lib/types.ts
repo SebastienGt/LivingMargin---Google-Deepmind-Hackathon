@@ -14,7 +14,10 @@ export type ComponentType =
   | "bio-card"
   | "chart"
   | "map"
-  | "quote-highlight";
+  | "quote-highlight"
+  | "image"
+  | "definition"
+  | "fact";
 
 export interface MarginComponent {
   type: ComponentType;
