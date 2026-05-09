@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# Build output
+.next/
+out/
+dist/
+build/
+
+# Env
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python (agent)
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.python-version
+
+# Testing
+coverage/
+.nyc_output/
+
+# Turbo / Vercel
+.turbo/
+.vercel
+
+# Tooling local state
+.superpowers/
