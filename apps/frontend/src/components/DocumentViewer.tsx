@@ -17,8 +17,8 @@ interface SlotState {
   component: MarginComponent | null;
 }
 
-const PRELOAD_COUNT = 20;
-const PREFETCH_AHEAD = 5;
+const PRELOAD_COUNT = 10;
+const PREFETCH_AHEAD = 4;
 
 export function DocumentViewer({
   parsed,
@@ -72,7 +72,6 @@ export function DocumentViewer({
     [parsed.blocks],
   );
 
-  // Preload the first PRELOAD_COUNT blocks immediately on document load.
   useEffect(() => {
     const initial = parsed.blocks.slice(0, PRELOAD_COUNT);
     for (const b of initial) fetchBlock(b);
@@ -106,8 +105,8 @@ export function DocumentViewer({
 
   return (
     <main className="min-h-screen bg-[#fafaf7]">
-      <header className="sticky top-0 z-20 border-b border-stone-200/70 bg-[#fafaf7]/85 backdrop-blur">
-        <div className="mx-auto flex max-w-[1400px] items-center gap-6 px-8 py-4">
+      <header className="sticky top-0 z-30 border-b border-stone-200/70 bg-[#fafaf7]/85 backdrop-blur">
+        <div className="mx-auto flex max-w-[1600px] items-center gap-6 px-8 py-4">
           <button
             onClick={onReset}
             className="inline-flex items-center gap-1.5 rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm text-stone-700 transition hover:border-stone-500 hover:bg-stone-50"
@@ -147,8 +146,8 @@ export function DocumentViewer({
         </div>
       </header>
 
-      <div className="mx-auto max-w-[1400px] px-8 py-12">
-        <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-[1fr_440px]">
+      <div className="mx-auto max-w-[1600px] px-8 py-12">
+        <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,1fr)_460px]">
           {parsed.blocks.map((block) => (
             <ParagraphRow
               key={block.id}

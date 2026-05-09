@@ -8,20 +8,27 @@ export const runtime = "nodejs";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? "");
 
-const SYSTEM_PROMPT = `You are a document analysis agent. For each paragraph, choose ONE interactive UI component from the catalog that enriches the reader's understanding — or null if the paragraph is genuinely boilerplate (filler transitions, page numbers, repeated headers).
+const SYSTEM_PROMPT = `You are a document analysis agent. For EVERY paragraph, you MUST choose ONE interactive UI component from the catalog that enriches the reader's understanding.
 
-DEFAULT TO PROVIDING A COMPONENT. Most paragraphs in a real document have at least one hook — a person, place, number, fact, term, or visualizable subject. Find it. Surface it. Empty margins are reserved for navigation cruft, not for content paragraphs.
+NEVER RETURN NULL. Every paragraph — even short transitions, even seemingly mundane sentences — has at least one hook you can foreground: a noun to illustrate, a phrase worth quoting, a term worth defining, a fact worth highlighting. Find it. The catalog is wide enough that something always fits.
 
-When more than one component fits, pick the one that adds the most visual variety relative to the surrounding context (favor maps for places, images for objects, charts for numbers, bios for people, definitions for jargon, facts for standout stats, quotes only for genuinely pivotal lines).
+VARIETY IS THE POINT. Look at the previous paragraphs' components and AVOID repeating the same type when something else fits. Aim for visual diversity across the right column (rotate through bios, charts, maps, quotes, images, definitions, and facts as the document permits).
+
+Type-selection guide:
+- map → any place, region, country, city, geographic feature
+- bio-card → any named person (real or fictional)
+- image → any concrete object, scene, animal, plant, food, artifact, building
+- chart → 3+ comparable numbers
+- fact → a single standout statistic, year, measurement
+- definition → a domain term, jargon, technical concept
+- quote-highlight → a memorable phrase, motto, or quotable statement (use sparingly)
 
 Available components:
 ${CATALOG_DESCRIPTIONS}
 
 You receive the current paragraph plus 0-2 previous paragraphs for context.
 
-Return STRICT JSON with this exact shape:
-{ "component": null }
-OR
+Return STRICT JSON with this exact shape (component must be present, never null):
 { "component": { "type": "bio-card" | "chart" | "map" | "quote-highlight" | "image" | "definition" | "fact", "data": { ... matching the type's data shape ... } } }
 
 No markdown, no code fences, no extra text outside the JSON object.`;
@@ -47,7 +54,7 @@ export async function POST(req: Request) {
   const userMessage = `${body.previousTexts.length > 0 ? `Previous paragraphs:\n${body.previousTexts.map((t, i) => `[${i + 1}] ${t}`).join("\n\n")}\n\n` : ""}Current paragraph:\n${body.currentText}`;
 
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
+    model: "gemini-2.0-flash-lite",
     systemInstruction: SYSTEM_PROMPT,
     generationConfig: {
       responseMimeType: "application/json",
